@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMTV Multi-Screen Playback | SMTV多螢幕播放</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #0055FF;
+            --background-color: #1a1a1a;
+            --highlight-color: #FFF00D;
+            --text-color: #cccccc;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(145deg, #0d0d0d, var(--background-color), #0d0d0d); /* 漸變背景 */
+            color: var(--primary-color); /* 文字顏色設為#0055FF */
+            font-family: 'Roboto Mono', monospace; /* 使用Roboto Mono字體 */
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            background: linear-gradient(145deg, #0d0d0d, var(--background-color), #0d0d0d);
+            opacity: 0;
+            transition: opacity 0.5s ease-in;
+            background-size: 200% 200%;
+            animation: backgroundAnimation 10s ease infinite;
+        }
+
+        .controls-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(13, 13, 13, 0.8);
+            padding: 10px;
+            z-index: 1000;
+            position: sticky;
+            top: 0;
+            margin-right: 50px; /* 增加右邊距離 */
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: nowrap; /* 確保按鈕不換行 */
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            max-width: 100%;
+            width: 100%;
+            flex-direction: row;
+        }
+
+        .controls input, .controls button {
+            padding: 5px 10px;
+            font-size: 14px;
+            background-color: var(--background-color);
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            border-radius: 4px;
+            transition: background-color 1.5s ease, transform 0.1s ease;
+        }
+
+        .controls input[type="number"] {
+            width: 60px;
+        }
+
+        .controls input[type="text"] {
+            flex-grow: 1;
+            min-width: 157.5px !important; /* 確保縮短為目前的0.7倍，並使用!important */
+        }
+
+        .controls input:hover, .controls button:hover {
+            background-color: var(--primary-color);
+            color: var(--background-color);
+        }
+
+        .controls input:active, .controls button:active {
+            transform: scale(0.95);
+        }
+
+        .logo {
+            position: fixed;
+            top: 10px;
+            right: 10px; /* 大尺寸螢幕時在右邊 */
+            z-index: 1100;
+        }
+
+        .logo img {
+            height: 30px;
+            filter: brightness(1.2);
+        }
+
+        .video-container {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .video-wrapper {
+            overflow: hidden;
+        }
+
+        .video-wrapper iframe {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        @media (max-width: 768px) {
+            .controls-container {
+                padding: 5px;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .controls {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .controls input, .controls button {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+
+            .logo {
+                right: auto;
+                left: calc(100% - 40px); /* 與menu-toggle對稱 */
+            }
+
+            .video-container {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
+
+        @media (max-width: 480px) {
+            .controls-container {
+                flex-direction: row;
+                flex-wrap: wrap; /* 允許換行 */
+                justify-content: space-between;
+            }
+
+            .controls input, .controls button {
+                font-size: 10px;
+                padding: 2px 4px;
+                flex: 1 1 45%; /* 每個按鈕占45%的寬度，允許換行 */
+                margin: 2px; /* 增加間距 */
+            }
+
+            .controls button {
+                width: auto; /* 自動調整寬度 */
+                height: 30px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .controls button i {
+                font-size: 16px;
+            }
+
+            .controls input[type="text"] {
+                width: 100px;
+            }
+
+            .logo img {
+                height: 20px;
+            }
+
+            /* 確保新按鈕的樣式一致 */
+            .controls button i.fa-stop {
+                font-size: 16px;
+            }
+        }
+
+        /* 新增背景動畫 */
+        @keyframes backgroundAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1200;
+            cursor: pointer;
+            font-size: 24px;
+            color: var(--primary-color);
+            transition: background-color 1.5s ease, transform 0.1s ease;
+        }
+
+        .menu-toggle:hover {
+            background-color: var(--primary-color);
+            color: var(--background-color);
+        }
+
+        .close-menu {
+            display: none;
+            font-size: 16px;
+            color: var(--background-color) !important;
+            background-color: #FF3637 !important;
+            border: 1px solid #FF3637 !important;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+            transition: background-color 1.5s ease, transform 0.1s ease;
+        }
+
+        .close-menu:hover {
+            background-color: var(--background-color) !important;
+            color: #FF3637 !important;
+        }
+
+        @media (max-width: 768px) {
+            .menu-toggle {
+                display: block;
+            }
+
+            .logo {
+                right: auto;
+                left: calc(100% - 40px); /* 與menu-toggle對稱 */
+            }
+
+            .controls-container {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                background: rgba(13, 13, 13, 0.9);
+                z-index: 1100;
+                flex-direction: column;
+                align-items: center;
+                padding: 10px;
+            }
+
+            .controls-container.active {
+                display: flex;
+            }
+
+            .close-menu {
+                display: block;
+                align-self: flex-end;
+                margin-right: 10px; /* 確保不超出邊界 */
+            }
+        }
+
+        .smtv-button {
+            background-color: var(--highlight-color) !important;
+            color: var(--background-color) !important;
+            border: 1px solid var(--highlight-color) !important;
+            padding: 5px 10px;
+            font-size: 14px;
+            border-radius: 4px;
+            transition: background-color 1.5s ease, transform 0.1s ease;
+            display: inline-flex; /* 使用 inline-flex 來對齊內容 */
+            align-items: center; /* 垂直居中 */
+            justify-content: center; /* 水平居中 */
+            height: 30px; /* 確保高度一致 */
+        }
+
+        .smtv-button:hover {
+            background-color: var(--background-color) !important;
+            color: var(--highlight-color) !important;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                width: 60%;
+                margin: 0 auto;
+            }
+
+            .controls input, .controls button {
+                width: 100%;
+                font-size: 12px;
+                padding: 5px;
+                box-sizing: border-box;
+                margin: 5px 0; /* 確保所有按鈕和入框有一致的上下間距 */
+            }
+
+            .controls input[type="text"] {
+                width: 100%;
+            }
+
+            .smtv-button, .close-menu {
+                width: 100%;
+            }
+        }
+
+        .controls input[type="number"], .controls input[type="text"] {
+            text-align: center;
+            color: var(--text-color); /* 中等亮度灰色 */
+        }
+
+        .controls input[type="number"]::placeholder, .controls input[type="text"]::placeholder {
+            color: var(--text-color); /* 中等亮度的灰色 */
+        }
+
+        .controls input[type="number"]:focus, .controls input[type="text"]:focus {
+            animation: none; /* 聚焦時停止閃爍 */
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="menu-toggle" onclick="toggleMenu()">
+        <i class="fas fa-bars"></i> <!-- 確保使用正確的圖標 -->
+    </div>
+    <div class="controls-container" id="controlsContainer">
+        <div class="controls">
+            <input type="number" id="videoCount" placeholder="數量" min="1" max="160">
+            <input type="text" id="videoUrl" placeholder="YouTube影片網址">
+            <button onclick="generateVideos()"><i class="fas fa-video"></i>生成影片</button>
+            <button onclick="playAll()"><i class="fas fa-play"></i>播放全部</button>
+            <button onclick="pauseAll()"><i class="fas fa-pause"></i>暫停全部</button>
+            <button onclick="clearAll()"><i class="fas fa-stop"></i> 清除全部</button>
+            <button onclick="saveCurrentLayout()"><i class="fas fa-save"></i> 儲存設定</button>
+            <button class="smtv-button" onclick="addSMTVVideo()"><i class="fas fa-sun"></i>SMTV</button>
+            <button class="smtv-button" onclick="addLiveVideo('UCyYoY9S20IXXPLPrQWE5RfA', '萬兆加持')"><i class="fas fa-moon"></i>萬兆加持</button>
+            <button class="smtv-button" onclick="addLiveVideo('UC1vy_AzF3zGK-lde_b-EGGQ', '佰仟加持')"><i class="fas fa-star"></i>佰仟加持</button>
+            <button class="close-menu" onclick="toggleMenu()"><i class="fas fa-times"></i> 關閉選單</button>
+            <button class="smtv-button" onclick="toggleLanguage()"><i class="fas fa-globe"></i> English</button>
+        </div>
+    </div>
+    <div class="logo">
+        <img src="https://i.imgur.com/S7fBbTw.png" alt="Logo">
+    </div>
+    <div class="video-container" id="videoContainer"></div>
+
+    <script>
+        window.addEventListener('load', () => {
+            document.body.style.opacity = '1';
+            loadSettings(); // 確保載入儲存的設定
+            loadLanguagePreference(); // 載入語言偏好
+        });
+
+        function loadSettingsFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const settingsParam = urlParams.get('settings');
+
+            if (settingsParam) {
+                try {
+                    const videoSettings = JSON.parse(decodeURIComponent(settingsParam));
+                    videoSettings.forEach(setting => {
+                        for (let i = 0; i < setting.count; i++) {
+                            addVideo(setting.videoId);
+                        }
+                    });
+                    adjustLayout();
+                } catch (error) {
+                    console.error('Error parsing settings from URL:', error);
+                    alert('無法加載影片設定，請檢網址是否正確');
+                }
+            } else {
+                loadSettings(); // 如果沒有URL參數，則加載本地儲存的設定
+            }
+        }
+
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        const players = [];
+
+        function onYouTubeIframeAPIReady() {
+            // 確保 API 載
+        }
+
+        const extractVideoId = (url) => {
+            const urlObj = new URL(url);
+            return urlObj.searchParams.get("v") || urlObj.pathname.split('/').pop();
+        };
+
+        function generateVideos() {
+            const videoContainer = document.getElementById('videoContainer');
+            const videoCount = parseInt(document.getElementById('videoCount').value);
+            const videoUrl = document.getElementById('videoUrl').value;
+            const videoId = extractVideoId(videoUrl);
+
+            if (videoCount < 1 || videoCount > 160) {
+                alert("請輸入1到160間的數量");
+                return;
+            }
+            if (!videoId) {
+                alert("請輸入有效的YouTube影片網址");
+                return;
+            }
+
+            const currentVideoCount = players.length;
+
+            for (let i = 1; i <= videoCount; i++) {
+                const videoWrapper = document.createElement('div');
+                videoWrapper.className = 'video-wrapper';
+                
+                const iframe = document.createElement('iframe');
+                iframe.id = `video${currentVideoCount + i}`;
+                iframe.src = `https://www.youtube.com/embed/${videoId}?enablejsapi=1`;
+                iframe.frameBorder = "0";
+                iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+                iframe.allowFullscreen = true;
+                
+                videoWrapper.appendChild(iframe);
+                videoContainer.appendChild(videoWrapper);
+
+                const player = new YT.Player(iframe.id, {
+                    events: {
+                        'onReady': (event) => {
+                            event.target.setVolume(1);
+                            event.target.setPlaybackQuality('small');
+                        }
+                    }
+                });
+                players.push(player);
+            }
+
+            adjustLayout();
+            saveCurrentLayout(); // 手動儲存設定
+        }
+
+        function adjustLayout() {
+            const videoContainer = document.getElementById('videoContainer');
+            const videoCount = players.length;
+
+            if (videoCount === 0) return;
+
+            const aspectRatio = 16 / 9;
+            const containerWidth = videoContainer.clientWidth;
+            const containerHeight = videoContainer.clientHeight;
+            const containerAspectRatio = containerWidth / containerHeight;
+
+            let cols = Math.ceil(Math.sqrt(videoCount * containerAspectRatio / aspectRatio));
+            let rows = Math.ceil(videoCount / cols);
+
+            // 確保有足夠的格子來容納所有影片
+            while (cols * rows < videoCount) {
+                cols++;
+                rows = Math.ceil(videoCount / cols);
+            }
+
+            // 修正：確保列數不會超過必要的數量
+            if (cols * rows > videoCount) {
+                if (cols > rows) {
+                    cols--;
+                } else {
+                    rows--;
+                }
+            }
+
+            // 設置網格佈局
+            videoContainer.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+            videoContainer.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+        }
+
+        function playAll() {
+            players.forEach(player => {
+                if (player && typeof player.playVideo === 'function') {
+                    player.playVideo();
+                }
+            });
+        }
+
+        function pauseAll() {
+            players.forEach(player => {
+                if (player && typeof player.pauseVideo === 'function') {
+                    player.pauseVideo();
+                }
+            });
+        }
+
+        function getVideoCount() {
+            const videoCountInput = document.getElementById('videoCount');
+            const videoCount = parseInt(videoCountInput.value);
+            return isNaN(videoCount) || videoCount <= 0 ? 1 : videoCount; // 默認為1
+        }
+
+        function addSMTVVideo() {
+            const videoId = 'ZzWBpGwKoaI'; // 固定的影片ID
+            const videoCount = getVideoCount();
+            for (let i = 0; i < videoCount; i++) {
+                addVideo(videoId);
+            }
+            adjustLayout();
+            saveCurrentLayout(); // 手動儲存設定
+        }
+
+        const apiKeys = [
+            'AIzaSyD65juBgTEKH7Dy0vqDAknppuRXKqd1FjA',
+            'AIzaSyAln2KSxJ1Vq5R00scaM5E8XnmdbQ4Mke4',
+            'AIzaSyBGNTWKfd5ZLwamAFHGoL8vkgejarHCLCQ',
+            'AIzaSyBgMSkcO2bzEL-t8PYGExdopxZxFQ8LtE0',
+            'AIzaSyBqmItrG5AfvTdymHNKhZHedyx3uPIRPqI',
+            'AIzaSyA_wiYnVQqXobQ52Xkya3Dk_VetYNjDF4c',
+            'AIzaSyBSGKku6wCR_cUBlhXYwjmJgRZUbT8gUFM',
+            'AIzaSyD4G6wFBNcOzp0yq7CVCtjVcfeUUsBt0b8',
+            'AIzaSyAyd6Dpu2995ccm550XUiuUTUdrFCK8olY',
+            'AIzaSyBqpUcTK4FZhSlw9yXLZ10D5Lonnx2DxUE',
+            'AIzaSyC5hSnt6Geo7JvfwGTijxysgXn3r9DIZc8'
+            
+        ];
+        let currentKeyIndex = 0;
+
+        function getApiKey() {
+            const apiKey = apiKeys[currentKeyIndex];
+            currentKeyIndex = (currentKeyIndex + 1) % apiKeys.length;
+            return apiKey;
+        }
+
+        function fetchLiveVideo(channelId, buttonName) {
+            const cacheKey = `liveVideo_${channelId}`;
+            const cachedData = localStorage.getItem(cacheKey);
+
+            if (cachedData) {
+                console.log('Using cached data:', JSON.parse(cachedData));
+                return Promise.resolve(JSON.parse(cachedData));
+            }
+
+            const apiKey = getApiKey();
+            const apiUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&eventType=live&type=video&key=${apiKey}`;
+
+            return fetch(apiUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        console.error('Network response was not ok:', response.statusText);
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('API Response:', data);
+                    if (data.items && data.items.length > 0) {
+                        localStorage.setItem(cacheKey, JSON.stringify(data));
+                    }
+                    return data;
+                })
+                .catch(error => {
+                    console.error('Error fetching live video:', error);
+                    alert('無法獲取播影片，請稍後再試');
+                });
+        }
+
+        function addLiveVideo(channelId, buttonName) {
+            const videoCount = getVideoCount();
+            fetchLiveVideo(channelId, buttonName)
+                .then(data => {
+                    if (data && data.items && data.items.length > 0) {
+                        const videoId = data.items[0].id.videoId;
+                        for (let i = 0; i < videoCount; i++) {
+                            addVideo(videoId);
+                        }
+                        adjustLayout(); // 確保佈局調整
+                        saveCurrentLayout(); // 手動存設定
+                    } else {
+                        alert(`${buttonName} Unable to retrieve feed temporarily; try again later | 無法獲取直播，稍後重試`);
+                    }
+                });
+        }
+
+        function clearAll() {
+            const videoContainer = document.getElementById('videoContainer');
+            videoContainer.innerHTML = ''; // 清空影片容器
+            players.length = 0; // 清空播放器陣列
+
+            // 清除影片設定的儲存
+            localStorage.removeItem('videoSettings');
+
+            // 清除快取的直播影片資料
+            localStorage.removeItem('liveVideo_UCyYoY9S20IXXPLPrQWE5RfA');
+            localStorage.removeItem('liveVideo_UC1vy_AzF3zGK-lde_b-EGGQ');
+
+            console.log('All videos and settings cleared.');
+        }
+
+        function loadSettings() {
+            const savedSettings = localStorage.getItem('videoSettings');
+            if (savedSettings) {
+                const videoSettings = JSON.parse(savedSettings);
+                videoSettings.forEach(setting => {
+                    for (let i = 0; i < setting.count; i++) {
+                        addVideo(setting.videoId);
+                    }
+                });
+                adjustLayout();
+            }
+        }
+
+        function addVideo(videoId) {
+            const videoContainer = document.getElementById('videoContainer');
+            const currentVideoCount = players.length;
+
+            const videoWrapper = document.createElement('div');
+            videoWrapper.className = 'video-wrapper';
+
+            const iframe = document.createElement('iframe');
+            iframe.id = `video${currentVideoCount}`; // 確保ID唯一
+            iframe.src = `https://www.youtube.com/embed/${videoId}?enablejsapi=1`;
+            iframe.frameBorder = "0";
+            iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+            iframe.allowFullscreen = true;
+
+            videoWrapper.appendChild(iframe);
+            videoContainer.appendChild(videoWrapper);
+
+            // 初始化YouTube播放器
+            const player = new YT.Player(iframe.id, {
+                events: {
+                    'onReady': (event) => {
+                        event.target.setVolume(1); // 設定音量為最低音量1
+                        event.target.setPlaybackQuality('tiny'); // 設定解析度為144p
+                    }
+                }
+            });
+            players.push(player);
+        }
+
+        function toggleMenu() {
+            const controlsContainer = document.getElementById('controlsContainer');
+            controlsContainer.classList.toggle('active');
+        }
+
+        function autoSaveSettings() {
+            const videoSettings = players.map(player => ({
+                videoId: player.getVideoData().video_id,
+                count: 1 // 每個播放器代表一個影片
+            }));
+            localStorage.setItem('videoSettings', JSON.stringify(videoSettings));
+        }
+
+        function saveCurrentLayout() {
+            const videoSettings = {};
+            players.forEach(player => {
+                const videoId = player.getVideoData().video_id;
+                if (videoSettings[videoId]) {
+                    videoSettings[videoId].count += 1;
+                } else {
+                    videoSettings[videoId] = { videoId: videoId, count: 1 };
+                }
+            });
+            localStorage.setItem('videoSettings', JSON.stringify(Object.values(videoSettings)));
+            alert('Current layout has been saved | 目前的影片佈局已儲存');
+        }
+
+        // 新增語言切換功能
+        let currentLanguage = 'zh'; // 默認為中文
+
+        const translations = {
+            'zh': {
+                'generateVideos': '生成影片',
+                'playAll': '播放全部',
+                'pauseAll': '暫停全部',
+                'clearAll': '清除全部',
+                'saveCurrentLayout': '儲存設定',
+                'addSMTVVideo': 'SMTV',
+                'addLiveVideo1': '萬兆加持',
+                'addLiveVideo2': '佰仟加持',
+                'closeMenu': '關閉選單',
+                'toggleLanguage': 'English',
+                'videoCountPlaceholder': '數量',
+                'videoUrlPlaceholder': 'YouTube影片網址'
+            },
+            'en': {
+                'generateVideos': 'Generate',
+                'playAll': 'Play',
+                'pauseAll': 'Pause',
+                'clearAll': 'Clear',
+                'saveCurrentLayout': 'Save',
+                'addSMTVVideo': 'SMTV',
+                'addLiveVideo1': '40Q Blessings',
+                'addLiveVideo2': '2k Blessings',
+                'closeMenu': 'Close Menu',
+                'toggleLanguage': '中文',
+                'videoCountPlaceholder': 'NUM',
+                'videoUrlPlaceholder': 'YouTube Video URL'
+            }
+        };
+
+        function toggleLanguage() {
+            currentLanguage = currentLanguage === 'zh' ? 'en' : 'zh';
+            localStorage.setItem('languagePreference', currentLanguage); // 儲存語言偏好
+            updateLanguage();
+        }
+
+        function loadLanguagePreference() {
+            const savedLanguage = localStorage.getItem('languagePreference');
+            if (savedLanguage) {
+                currentLanguage = savedLanguage;
+                updateLanguage();
+            }
+        }
+
+        function updateLanguage() {
+            document.querySelector('button[onclick="generateVideos()"]').innerHTML = `<i class="fas fa-video"></i> ${translations[currentLanguage]['generateVideos']}`;
+            document.querySelector('button[onclick="playAll()"]').innerHTML = `<i class="fas fa-play"></i> ${translations[currentLanguage]['playAll']}`;
+            document.querySelector('button[onclick="pauseAll()"]').innerHTML = `<i class="fas fa-pause"></i> ${translations[currentLanguage]['pauseAll']}`;
+            document.querySelector('button[onclick="clearAll()"]').innerHTML = `<i class="fas fa-stop"></i> ${translations[currentLanguage]['clearAll']}`;
+            document.querySelector('button[onclick="saveCurrentLayout()"]').innerHTML = `<i class="fas fa-save"></i> ${translations[currentLanguage]['saveCurrentLayout']}`;
+            document.querySelector('button[onclick="addSMTVVideo()"]').innerHTML = `<i class="fas fa-sun"></i> ${translations[currentLanguage]['addSMTVVideo']}`;
+            document.querySelector('button[onclick="addLiveVideo(\'UCyYoY9S20IXXPLPrQWE5RfA\', \'萬兆加持\')"]').innerHTML = `<i class="fas fa-moon"></i> ${translations[currentLanguage]['addLiveVideo1']}`;
+            document.querySelector('button[onclick="addLiveVideo(\'UC1vy_AzF3zGK-lde_b-EGGQ\', \'佰仟加持\')"]').innerHTML = `<i class="fas fa-star"></i> ${translations[currentLanguage]['addLiveVideo2']}`;
+            document.querySelector('button[onclick="toggleMenu()"]').innerHTML = `<i class="fas fa-times"></i> ${translations[currentLanguage]['closeMenu']}`;
+            document.querySelector('button[onclick="toggleLanguage()"]').innerHTML = `<i class="fas fa-globe"></i> ${translations[currentLanguage]['toggleLanguage']}`;
+
+            // 更新輸入框的佔位符
+            document.getElementById('videoCount').placeholder = translations[currentLanguage]['videoCountPlaceholder'];
+            document.getElementById('videoUrl').placeholder = translations[currentLanguage]['videoUrlPlaceholder'];
+        }
+    </script>
+</body>
+</html>
