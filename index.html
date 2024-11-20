@@ -357,38 +357,7 @@
             loadLanguagePreference(); // 載入語言偏好
         });
 
-        function loadSettingsFromUrl() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const settingsParam = urlParams.get('settings');
-
-            if (settingsParam) {
-                try {
-                    const videoSettings = JSON.parse(decodeURIComponent(settingsParam));
-                    videoSettings.forEach(setting => {
-                        for (let i = 0; i < setting.count; i++) {
-                            addVideo(setting.videoId);
-                        }
-                    });
-                    adjustLayout();
-                } catch (error) {
-                    console.error('Error parsing settings from URL:', error);
-                    alert('無法加載影片設定，請檢網址是否正確');
-                }
-            } else {
-                loadSettings(); // 如果沒有URL參數，則加載本地儲存的設定
-            }
-        }
-
-        var tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        var firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
         const players = [];
-
-        function onYouTubeIframeAPIReady() {
-            // 確保 API 載
-        }
 
         const extractVideoId = (url) => {
             const urlObj = new URL(url);
@@ -410,40 +379,16 @@
                 return;
             }
 
-            const currentVideoCount = players.length;
-
-            for (let i = 1; i <= videoCount; i++) {
-                const videoWrapper = document.createElement('div');
-                videoWrapper.className = 'video-wrapper';
-                
-                const iframe = document.createElement('iframe');
-                iframe.id = `video${currentVideoCount + i}`;
-                iframe.src = `https://www.youtube.com/embed/${videoId}?enablejsapi=1`;
-                iframe.frameBorder = "0";
-                iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
-                iframe.allowFullscreen = true;
-                
-                videoWrapper.appendChild(iframe);
-                videoContainer.appendChild(videoWrapper);
-
-                const player = new YT.Player(iframe.id, {
-                    events: {
-                        'onReady': (event) => {
-                            event.target.setVolume(1);
-                            event.target.setPlaybackQuality('small');
-                        }
-                    }
-                });
-                players.push(player);
+            for (let i = 0; i < videoCount; i++) {
+                addVideo(`https://www.youtube.com/embed/${videoId}?enablejsapi=1`);
             }
 
             adjustLayout();
-            saveCurrentLayout(); // 手動儲存設定
         }
 
         function adjustLayout() {
             const videoContainer = document.getElementById('videoContainer');
-            const videoCount = players.length;
+            const videoCount = document.querySelectorAll('.video-wrapper').length;
 
             if (videoCount === 0) return;
 
@@ -501,92 +446,24 @@
             const videoId = 'ZzWBpGwKoaI'; // 固定的影片ID
             const videoCount = getVideoCount();
             for (let i = 0; i < videoCount; i++) {
-                addVideo(videoId);
+                addVideo(`https://www.youtube.com/embed/${videoId}?enablejsapi=1`);
             }
             adjustLayout();
-            saveCurrentLayout(); // 手動儲存設定
-        }
-
-        const apiKeys = [
-            'AIzaSyCgt_zmLQEdm-hpEdlXJLecduz4TE5shbo,
-            'AIzaSyBvCz4jOns1D-KstBhGaCND7PH2apEuoI4,
-            'AIzaSyD65juBgTEKH7Dy0vqDAknppuRXKqd1FjA',
-            'AIzaSyAln2KSxJ1Vq5R00scaM5E8XnmdbQ4Mke4',
-            'AIzaSyBGNTWKfd5ZLwamAFHGoL8vkgejarHCLCQ',
-            'AIzaSyBgMSkcO2bzEL-t8PYGExdopxZxFQ8LtE0',
-            'AIzaSyBqmItrG5AfvTdymHNKhZHedyx3uPIRPqI',
-            'AIzaSyA_wiYnVQqXobQ52Xkya3Dk_VetYNjDF4c',
-            'AIzaSyBSGKku6wCR_cUBlhXYwjmJgRZUbT8gUFM',
-            'AIzaSyD4G6wFBNcOzp0yq7CVCtjVcfeUUsBt0b8',
-            'AIzaSyAyd6Dpu2995ccm550XUiuUTUdrFCK8olY',
-            'AIzaSyBqpUcTK4FZhSlw9yXLZ10D5Lonnx2DxUE',
-            'AIzaSyALap2uCxTJP5oeGes3cZi13t8v-8JW06Q',
-            'AIzaSyBGMPfMXZYOg3CUm8YO_uB62ipHY6fedmY',
-            'AIzaSyB_iGiWRklgSpotYLIEnGNtCkQQRj3hhT0',
-            'AIzaSyBVYYUYuWdtx0KSR5ajZ_xjDj8Afn-i0Fo',
-            'AIzaSyC5l6Ouas2akuG-RDYx6Rda86o-HavyZ6M',
-            'AIzaSyB79Ta0SAxTLwbSGJexKSK3MJu0TQFPF8A',
-            'AIzaSyD60H36UL_wnqyZRVswVcWAHpqRXty5G80',
-            'AIzaSyBwmQzllSgYU4phty5CgUp-PvQsDtlJOTE',
-            'AIzaSyC5hSnt6Geo7JvfwGTijxysgXn3r9DIZc8'
-            
-        ];
-        let currentKeyIndex = 0;
-
-        function getApiKey() {
-            const apiKey = apiKeys[currentKeyIndex];
-            currentKeyIndex = (currentKeyIndex + 1) % apiKeys.length;
-            return apiKey;
-        }
-
-        function fetchLiveVideo(channelId, buttonName) {
-            const cacheKey = `liveVideo_${channelId}`;
-            const cachedData = localStorage.getItem(cacheKey);
-
-            if (cachedData) {
-                console.log('Using cached data:', JSON.parse(cachedData));
-                return Promise.resolve(JSON.parse(cachedData));
-            }
-
-            const apiKey = getApiKey();
-            const apiUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&eventType=live&type=video&key=${apiKey}`;
-
-            return fetch(apiUrl)
-                .then(response => {
-                    if (!response.ok) {
-                        console.error('Network response was not ok:', response.statusText);
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('API Response:', data);
-                    if (data.items && data.items.length > 0) {
-                        localStorage.setItem(cacheKey, JSON.stringify(data));
-                    }
-                    return data;
-                })
-                .catch(error => {
-                    console.error('Error fetching live video:', error);
-                    alert('無法獲取播影片，請稍後再試');
-                });
         }
 
         function addLiveVideo(channelId, buttonName) {
             const videoCount = getVideoCount();
-            fetchLiveVideo(channelId, buttonName)
-                .then(data => {
-                    if (data && data.items && data.items.length > 0) {
-                        const videoId = data.items[0].id.videoId;
-                        for (let i = 0; i < videoCount; i++) {
-                            addVideo(videoId);
-                        }
-                        adjustLayout(); // 確保佈局調整
-                        saveCurrentLayout(); // 手動存設定
-                    } else {
-                        alert(`${buttonName} Unable to retrieve feed temporarily; try again later | 無法獲取直播，稍後重試`);
-                    }
-                });
+            let videoUrl = '';
+            if (channelId === 'UCyYoY9S20IXXPLPrQWE5RfA') {
+                videoUrl = 'https://www.youtube.com/embed/live_stream?channel=UCyYoY9S20IXXPLPrQWE5RfA&rel=0';
+            } else if (channelId === 'UC1vy_AzF3zGK-lde_b-EGGQ') {
+                videoUrl = 'https://www.youtube.com/embed/live_stream?channel=UC1vy_AzF3zGK-lde_b-EGGQ&rel=0';
+            }
+
+            for (let i = 0; i < videoCount; i++) {
+                addVideo(videoUrl);
+            }
+            adjustLayout(); // 確保佈局調整
         }
 
         function clearAll() {
@@ -597,10 +474,6 @@
             // 清除影片設定的儲存
             localStorage.removeItem('videoSettings');
 
-            // 清除快取的直播影片資料
-            localStorage.removeItem('liveVideo_UCyYoY9S20IXXPLPrQWE5RfA');
-            localStorage.removeItem('liveVideo_UC1vy_AzF3zGK-lde_b-EGGQ');
-
             console.log('All videos and settings cleared.');
         }
 
@@ -610,40 +483,27 @@
                 const videoSettings = JSON.parse(savedSettings);
                 videoSettings.forEach(setting => {
                     for (let i = 0; i < setting.count; i++) {
-                        addVideo(setting.videoId);
+                        addVideo(`https://www.youtube.com/embed/${setting.videoId}?enablejsapi=1`);
                     }
                 });
                 adjustLayout();
             }
         }
 
-        function addVideo(videoId) {
+        function addVideo(videoUrl) {
             const videoContainer = document.getElementById('videoContainer');
-            const currentVideoCount = players.length;
 
             const videoWrapper = document.createElement('div');
             videoWrapper.className = 'video-wrapper';
 
             const iframe = document.createElement('iframe');
-            iframe.id = `video${currentVideoCount}`; // 確保ID唯一
-            iframe.src = `https://www.youtube.com/embed/${videoId}?enablejsapi=1`;
+            iframe.src = videoUrl;
             iframe.frameBorder = "0";
             iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
             iframe.allowFullscreen = true;
 
             videoWrapper.appendChild(iframe);
             videoContainer.appendChild(videoWrapper);
-
-            // 初始化YouTube播放器
-            const player = new YT.Player(iframe.id, {
-                events: {
-                    'onReady': (event) => {
-                        event.target.setVolume(1); // 設定音量為最低音量1
-                        event.target.setPlaybackQuality('tiny'); // 設定解析度為144p
-                    }
-                }
-            });
-            players.push(player);
         }
 
         function toggleMenu() {
@@ -651,25 +511,16 @@
             controlsContainer.classList.toggle('active');
         }
 
-        function autoSaveSettings() {
-            const videoSettings = players.map(player => ({
-                videoId: player.getVideoData().video_id,
-                count: 1 // 每個播放器代表一個影片
-            }));
-            localStorage.setItem('videoSettings', JSON.stringify(videoSettings));
-        }
-
         function saveCurrentLayout() {
-            const videoSettings = {};
-            players.forEach(player => {
-                const videoId = player.getVideoData().video_id;
-                if (videoSettings[videoId]) {
-                    videoSettings[videoId].count += 1;
-                } else {
-                    videoSettings[videoId] = { videoId: videoId, count: 1 };
+            const videoSettings = [];
+            const videoWrappers = document.querySelectorAll('.video-wrapper iframe');
+            videoWrappers.forEach(iframe => {
+                const videoId = new URL(iframe.src).pathname.split('/').pop();
+                if (videoId) {
+                    videoSettings.push({ videoId: videoId, count: 1 });
                 }
             });
-            localStorage.setItem('videoSettings', JSON.stringify(Object.values(videoSettings)));
+            localStorage.setItem('videoSettings', JSON.stringify(videoSettings));
             alert('Current layout has been saved | 目前的影片佈局已儲存');
         }
 
