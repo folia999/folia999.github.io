@@ -397,11 +397,14 @@
 
         function generateVideos() {
             const videoContainer = document.getElementById('videoContainer');
-            const videoCount = parseInt(document.getElementById('videoCount').value);
+            const videoCountInput = document.getElementById('videoCount');
             const videoUrl = document.getElementById('videoUrl').value;
+            
+            // 如果沒有填入數量，預設為1
+            const videoCount = videoCountInput.value ? parseInt(videoCountInput.value) : 1;
             const videoId = extractVideoId(videoUrl);
 
-            if (videoCount < 1 || videoCount > 160) {
+            if (videoCount > 160) {
                 alert("請輸入1到160間的數量");
                 return;
             }
@@ -438,7 +441,7 @@
             }
 
             adjustLayout();
-            saveCurrentLayout(); // 手動儲存設定
+            saveCurrentLayout();
         }
 
         function adjustLayout() {
