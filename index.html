@@ -323,19 +323,20 @@
             }
         }
 
-        /* 新增通知樣式 */
+        /* 修改通知樣式 */
         .notification {
             position: fixed;
-            left: -300px; /* 初始位置在螢幕外 */
+            left: -300px;
             top: 20px;
-            background: linear-gradient(45deg, #ff0000, #ff6b6b);
-            color: white;
+            background: linear-gradient(45deg, #FF8C00, #FFA500, #FFB347, #FFC87C, #FFD700);
+            color: #1a1a1a; /* 深色文字以增加可讀性 */
             padding: 15px 20px;
             border-radius: 4px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             z-index: 9999;
             max-width: 280px;
             transition: left 0.3s ease-in-out;
+            font-weight: bold; /* 加粗文字 */
         }
 
         .notification.show {
@@ -717,7 +718,7 @@
                 'addLiveVideo2': '佰仟加持',
                 'closeMenu': '關閉選單',
                 'toggleLanguage': 'En',
-                'videoCountPlaceholder': '數量',
+                'videoCountPlaceholder': '���量',
                 'videoUrlPlaceholder': 'YouTube影片網址',
                 'videoFetchError': '無法獲取影片，請稍後再試'
             },
