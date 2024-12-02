@@ -415,7 +415,9 @@
 
         function generateVideos() {
             const videoContainer = document.getElementById('videoContainer');
-            const videoCount = parseInt(document.getElementById('videoCount').value);
+            const videoCountInput = document.getElementById('videoCount');
+            // 如果沒有輸入數量或數量無效，則預設為1
+            const videoCount = videoCountInput.value ? parseInt(videoCountInput.value) : 1;
             const videoUrl = document.getElementById('videoUrl').value;
             const videoId = extractVideoId(videoUrl);
 
