@@ -350,7 +350,7 @@
     </div>
     <div class="controls-container" id="controlsContainer">
         <div class="controls">
-            <input type="number" id="videoCount" placeholder="數量" min="1" max="160">
+            <input type="number" id="videoCount" placeholder="數量" min="1" max="999">
             <input type="text" id="videoUrl" placeholder="YouTube影片網址">
             <button onclick="generateVideos()"><i class="fas fa-video"></i>生成影片</button>
             <button onclick="playAll()"><i class="fas fa-play"></i>播放全部</button>
@@ -422,12 +422,12 @@
             const videoUrl = document.getElementById('videoUrl').value;
             const videoId = extractVideoId(videoUrl);
 
-            if (videoCount < 1 || videoCount > 160) {
-                showNotification("請輸入1到160間的數量");
+            if (videoCount < 1 || videoCount > 999) {
+                showNotification("請輸入1到999間的數量");
                 return;
             }
             if (!videoId) {
-                showNotification("請輸入有效的YouTube影片網址");
+                showNotification("Please enter a valid YouTube video URL ｜ 請輸入有效的YouTube影片網址");
                 return;
             }
 
