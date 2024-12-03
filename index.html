@@ -528,100 +528,37 @@
             saveCurrentLayout(); // 手動儲存設定
         }
 
-        const apiKeys = [
-'AIzaSyCD4_j9NZuukRU7LAdGCceV3ALmb4P0COM',  
-'AIzaSyAltk9uUB0wVXyMK4O9SMklP5j1oqD0Vow',
-'AIzaSyAoo0zJLSUBnYCPs8OoacYZf4gRpm0_-B4',
-'AIzaSyBDIcD7VhJvvC-UvP3AwLzPSiHogDk_6RM',  
-'AIzaSyCOb9fU9A9vV3xYUuoMTvsqqVJqPDwKkXk',  
-'AIzaSyACjmZRas2-lt5XpnPsiY2leRxaVcc_Prk',  
-'AIzaSyA6aERDKXdAtmCigClYTVDsMjLBRrCy4FE',  
-'AIzaSyCbcCjJG5rNT2uLLnwlIdZleLZwZrpq0oQ',  
-'AIzaSyDnG6ANT5nnPR2lz66NXyrQnqHJdfTNqW0',  
-'AIzaSyAS-VLO478DV7_xU0J7PYDx-TPbFNsRUm8',  
-'AIzaSyCL7bUGOsmMt2Sc0Qg846-DtoqOIk0F_K0',  
-'AIzaSyC5tMyUHJOoVajVs1VEpQCHijFD-qGzpfk',  
-'AIzaSyCKbfK5o0MOaTwNoxgLLNx091JmMnSWhBg',  
-'AIzaSyDe5AL9qKoyysnBq7YHn9jc-E1XRnxSsHM',  
-'AIzaSyCvm-CswL71F4kDbpA4B2uTwdyN9dJNQ1M',  
-'AIzaSyBGWkbFZ5Bgol4fkf92uC2KwrGaxcZR0ww',  
-'AIzaSyCANeakwmeqRy_HN_jyzAcNIOTYLqTLuOQ',  
-'AIzaSyBX7qyvWZWC1j5BBexyzsuib4MHPzDLjZ8',  
-'AIzaSyBjQtguPCCdjIwxaSPUPnDsS5hyP97WMas',  
-'AIzaSyAgNrafGz8iHdWXgXyAAzi7HEHPG59ygg0',  
-'AIzaSyCqscVw6ZmaIYu2NQdfjgNc3csUl64DqXU',  
-'AIzaSyCGdV6TlE7Zlqe-Ao57weHWUgYxPmeuMW4',  
-'AIzaSyCMs_0qfk8KWGV_DchNtNjp7bQP-HBO5nI',  
-'AIzaSyDeOHZP1pj8lIrwB3dft_zAGEWYuOK8ptk',  
-'AIzaSyAjTGBW-Ln3zskIPcCzqIutXdRKehcMhvI',  
-'AIzaSyCMpCR9Hr50NVNZEc8WZMR7SB1JvondadU',  
-'AIzaSyBH-k9esqkwzj2VFoHVnQXXedROylcjqDA',  
-'AIzaSyDnHxA8j0mG8etomNvpgsQZfZAw8zyvGtM',  
-'AIzaSyD2hYTS0hwTuz3wlq5R5G3AfCqMYnpu4II',  
-'AIzaSyCAo6FPe1hr_OJxxYq-0TGRfh8eK5WLBpg',  
-'AIzaSyByn-GJjSr8pZ2XsOlhABcJuZ0CItAPToI',  
-'AIzaSyCEhlF7U_JzelJrnW0UjSd9gaI_JUwI3Fo',  
-'AIzaSyDOHkIaueQuuo4w9_Bt7nKJrtx0TK2rvvc',  
-'AIzaSyAcJRcCs-PYd80eattHt2P1jCy8eF-Pp9o',  
-'AIzaSyCOuGOJxZBvVad09i3OLF-nXYF1yX4NrOM'
-            
-        ];
-        let currentKeyIndex = 0;
-
-        function getApiKey() {
-            const apiKey = apiKeys[currentKeyIndex];
-            currentKeyIndex = (currentKeyIndex + 1) % apiKeys.length;
-            return apiKey;
-        }
-
-        function fetchLiveVideo(channelId, buttonName) {
-            const cacheKey = `liveVideo_${channelId}`;
-            const cachedData = localStorage.getItem(cacheKey);
-
-            if (cachedData) {
-                console.log('Using cached data:', JSON.parse(cachedData));
-                return Promise.resolve(JSON.parse(cachedData));
-            }
-
-            const apiKey = getApiKey();
-            const apiUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&eventType=live&type=video&key=${apiKey}`;
-
-            return fetch(apiUrl)
-                .then(response => {
-                    if (!response.ok) {
-                        console.error('Network response was not ok:', response.statusText);
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('API Response:', data);
-                    if (data.items && data.items.length > 0) {
-                        localStorage.setItem(cacheKey, JSON.stringify(data));
-                    }
-                    return data;
-                })
-                .catch(error => {
-                    console.error('Error fetching live video:', error);
-                    showNotification(translations[currentLanguage]['videoFetchError']);
-                });
-        }
-
         function addLiveVideo(channelId, buttonName) {
             const videoCount = getVideoCount();
-            fetchLiveVideo(channelId, buttonName)
-                .then(data => {
-                    if (data && data.items && data.items.length > 0) {
-                        const videoId = data.items[0].id.videoId;
-                        for (let i = 0; i < videoCount; i++) {
-                            addVideo(videoId);
+            const embedUrl = `https://www.youtube.com/embed/live_stream?channel=${channelId}`;
+            
+            for (let i = 0; i < videoCount; i++) {
+                const videoWrapper = document.createElement('div');
+                videoWrapper.className = 'video-wrapper';
+                
+                const iframe = document.createElement('iframe');
+                iframe.id = `video${players.length}`;
+                iframe.src = `${embedUrl}&enablejsapi=1`;
+                iframe.frameBorder = "0";
+                iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+                iframe.allowFullscreen = true;
+                
+                videoWrapper.appendChild(iframe);
+                document.getElementById('videoContainer').appendChild(videoWrapper);
+                
+                const player = new YT.Player(iframe.id, {
+                    events: {
+                        'onReady': (event) => {
+                            event.target.setVolume(1);
+                            event.target.setPlaybackQuality('small');
                         }
-                        adjustLayout(); // 確保佈局調整
-                        saveCurrentLayout(); // 手動存設定
-                    } else {
-                        showNotification(translations[currentLanguage]['videoFetchError']);
                     }
                 });
+                players.push(player);
+            }
+            
+            adjustLayout();
+            saveCurrentLayout();
         }
 
         function clearAll() {
@@ -642,13 +579,19 @@
         function loadSettings() {
             const savedSettings = localStorage.getItem('videoSettings');
             if (savedSettings) {
-                const videoSettings = JSON.parse(savedSettings);
-                videoSettings.forEach(setting => {
-                    for (let i = 0; i < setting.count; i++) {
-                        addVideo(setting.videoId);
-                    }
-                });
-                adjustLayout();
+                try {
+                    const videoSettings = JSON.parse(savedSettings);
+                    videoSettings.forEach(setting => {
+                        if (setting.channelId) {
+                            for (let i = 0; i < setting.count; i++) {
+                                addLiveVideo(setting.channelId);
+                            }
+                        }
+                    });
+                    adjustLayout();
+                } catch (error) {
+                    console.error('載入設定時發生錯誤:', error);
+                }
             }
         }
 
@@ -695,17 +638,32 @@
         }
 
         function saveCurrentLayout() {
-            const videoSettings = {};
+            const videoSettings = [];
+            const processedChannels = new Set();
+            
             players.forEach(player => {
-                const videoId = player.getVideoData().video_id;
-                if (videoSettings[videoId]) {
-                    videoSettings[videoId].count += 1;
-                } else {
-                    videoSettings[videoId] = { videoId: videoId, count: 1 };
+                try {
+                    const iframe = player.getIframe();
+                    const src = iframe.src;
+                    const channelMatch = src.match(/channel=([^&]+)/);
+                    
+                    if (channelMatch) {
+                        const channelId = channelMatch[1];
+                        if (!processedChannels.has(channelId)) {
+                            processedChannels.add(channelId);
+                            const count = players.filter(p => 
+                                p.getIframe().src.includes(`channel=${channelId}`)
+                            ).length;
+                            videoSettings.push({ channelId, count });
+                        }
+                    }
+                } catch (error) {
+                    console.error('保存設定時發生錯誤:', error);
                 }
             });
-            localStorage.setItem('videoSettings', JSON.stringify(Object.values(videoSettings)));
-            showNotification('Current layout has been saved 當前影片佈局已儲存');
+            
+            localStorage.setItem('videoSettings', JSON.stringify(videoSettings));
+            showNotification(translations[currentLanguage]['layoutSaved']);
         }
 
         // 新增語言切換功能
@@ -725,7 +683,6 @@
                 'toggleLanguage': 'En',
                 'videoCountPlaceholder': '數量',
                 'videoUrlPlaceholder': 'YouTube影片網址',
-                'videoFetchError': '無法獲取影片，請稍後再試',
                 'layoutSaved': '當前影片佈局已儲存'
             },
             'en': {
@@ -741,7 +698,6 @@
                 'toggleLanguage': '中',
                 'videoCountPlaceholder': 'NUM',
                 'videoUrlPlaceholder': 'YouTube Video URL',
-                'videoFetchError': 'Unable to fetch video, please try again later',
                 'layoutSaved': 'Current layout has been saved'
             }
         };
