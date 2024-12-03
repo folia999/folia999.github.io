@@ -520,13 +520,13 @@
         }
 
         function addSMTVVideo() {
-            const videoId = 'ZzWBpGwKoaI'; // 固定的影片ID
+            const videoId = 'ZzWBpGwKoaI';
             const videoCount = getVideoCount();
             for (let i = 0; i < videoCount; i++) {
                 addVideo(videoId);
             }
             adjustLayout();
-            saveCurrentLayout(); // 手動儲存設定
+            saveCurrentLayout(false); // 加入 false 參數表示不顯示提示
         }
 
         function addLiveVideo(channelId, buttonName) {
@@ -559,7 +559,7 @@
             }
             
             adjustLayout();
-            saveCurrentLayout();
+            saveCurrentLayout(false); // 加入 false 參數表示不顯示提示
         }
 
         function clearAll() {
@@ -638,7 +638,7 @@
             localStorage.setItem('videoSettings', JSON.stringify(videoSettings));
         }
 
-        function saveCurrentLayout() {
+        function saveCurrentLayout(showMessage = true) { // 新增參數控制是否顯示訊息
             const videoSettings = [];
             const processedChannels = new Set();
             
@@ -664,7 +664,9 @@
             });
             
             localStorage.setItem('videoSettings', JSON.stringify(videoSettings));
-            showNotification(translations[currentLanguage]['layoutSaved']);
+            if (showMessage) {
+                showNotification(translations[currentLanguage]['layoutSaved']);
+            }
         }
 
         // 新增語言切換功能
