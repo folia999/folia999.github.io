@@ -725,7 +725,8 @@
                 'toggleLanguage': 'En',
                 'videoCountPlaceholder': '數量',
                 'videoUrlPlaceholder': 'YouTube影片網址',
-                'videoFetchError': '無法獲取影片，請稍後再試'
+                'videoFetchError': '無法獲取影片，請稍後再試',
+                'layoutSaved': '當前影片佈局已儲存'
             },
             'en': {
                 'generateVideos': 'Generate',
@@ -740,7 +741,8 @@
                 'toggleLanguage': '中',
                 'videoCountPlaceholder': 'NUM',
                 'videoUrlPlaceholder': 'YouTube Video URL',
-                'videoFetchError': 'Unable to fetch video, please try again later'
+                'videoFetchError': 'Unable to fetch video, please try again later',
+                'layoutSaved': 'Current layout has been saved'
             }
         };
 
@@ -777,22 +779,29 @@
 
         // 新增通知函數
         function showNotification(message) {
+            // 移除舊的通知（如果存在）
+            const existingNotification = document.querySelector('.notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+
+            // 創建新的通知元素
             const notification = document.createElement('div');
             notification.className = 'notification';
             notification.textContent = message;
             document.body.appendChild(notification);
 
             // 觸發動畫
-            setTimeout(() => {
+            requestAnimationFrame(() => {
                 notification.classList.add('show');
-            }, 100);
+            });
 
             // 3秒後移除通知
             setTimeout(() => {
                 notification.classList.remove('show');
                 setTimeout(() => {
                     notification.remove();
-                }, 300);
+                }, 300); // 等待淡出動畫完成
             }, 3000);
         }
     </script>
