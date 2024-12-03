@@ -584,8 +584,14 @@
                     const videoSettings = JSON.parse(savedSettings);
                     videoSettings.forEach(setting => {
                         if (setting.channelId) {
+                            // 載入直播頻道
                             for (let i = 0; i < setting.count; i++) {
                                 addLiveVideo(setting.channelId);
+                            }
+                        } else if (setting.videoId) {
+                            // 載入一般影片
+                            for (let i = 0; i < setting.count; i++) {
+                                addVideo(setting.videoId);
                             }
                         }
                     });
@@ -638,7 +644,7 @@
             localStorage.setItem('videoSettings', JSON.stringify(videoSettings));
         }
 
-        function saveCurrentLayout(showMessage = true) { // 新增參數控制是否顯示訊息
+        function saveCurrentLayout(showMessage = true) {
             const videoSettings = [];
             const processedChannels = new Set();
             
@@ -647,8 +653,10 @@
                     const iframe = player.getIframe();
                     const src = iframe.src;
                     const channelMatch = src.match(/channel=([^&]+)/);
+                    const videoMatch = src.match(/embed\/([^?]+)/);
                     
                     if (channelMatch) {
+                        // 處理直播頻道
                         const channelId = channelMatch[1];
                         if (!processedChannels.has(channelId)) {
                             processedChannels.add(channelId);
@@ -656,6 +664,16 @@
                                 p.getIframe().src.includes(`channel=${channelId}`)
                             ).length;
                             videoSettings.push({ channelId, count });
+                        }
+                    } else if (videoMatch) {
+                        // 處理一般影片
+                        const videoId = videoMatch[1];
+                        if (!processedChannels.has(videoId)) {
+                            processedChannels.add(videoId);
+                            const count = players.filter(p => 
+                                p.getIframe().src.includes(`embed/${videoId}`)
+                            ).length;
+                            videoSettings.push({ videoId, count });
                         }
                     }
                 } catch (error) {
