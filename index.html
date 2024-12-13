@@ -360,7 +360,6 @@
             <button onclick="saveCurrentLayout()"><i class="fas fa-save"></i>儲存設定</button>
             <button class="smtv-button" onclick="addSMTVVideo()"><i class="fas fa-sun"></i>SMTV</button>
             <button class="smtv-button" onclick="addLiveVideo('UCyYoY9S20IXXPLPrQWE5RfA', '萬兆加持')"><i class="fas fa-moon"></i>萬兆加持</button>
-            <button class="smtv-button" onclick="addLiveVideo('UC1vy_AzF3zGK-lde_b-EGGQ', '佰仟加持')"><i class="fas fa-star"></i>佰仟加持</button>
             <button class="close-menu" onclick="toggleMenu()"><i class="fas fa-times"></i>關閉選單</button>
             <button class="smtv-button" onclick="toggleLanguage()"><i class="fas fa-globe"></i>En</button>
         </div>
@@ -699,7 +698,6 @@
                 'saveCurrentLayout': '儲存設定',
                 'addSMTVVideo': 'SMTV',
                 'addLiveVideo1': '萬兆加持',
-                'addLiveVideo2': '佰仟加持',
                 'closeMenu': '關閉選單',
                 'toggleLanguage': 'En',
                 'videoCountPlaceholder': '數量',
@@ -714,7 +712,6 @@
                 'saveCurrentLayout': 'Save',
                 'addSMTVVideo': 'SMTV',
                 'addLiveVideo1': '40Q Blessings',
-                'addLiveVideo2': '2k Blessings',
                 'closeMenu': 'Close Menu',
                 'toggleLanguage': '中',
                 'videoCountPlaceholder': 'NUM',
@@ -745,7 +742,6 @@
             document.querySelector('button[onclick="saveCurrentLayout()"]').innerHTML = `<i class="fas fa-save"></i> ${translations[currentLanguage]['saveCurrentLayout']}`;
             document.querySelector('button[onclick="addSMTVVideo()"]').innerHTML = `<i class="fas fa-sun"></i> ${translations[currentLanguage]['addSMTVVideo']}`;
             document.querySelector('button[onclick="addLiveVideo(\'UCyYoY9S20IXXPLPrQWE5RfA\', \'萬兆加持\')"]').innerHTML = `<i class="fas fa-moon"></i> ${translations[currentLanguage]['addLiveVideo1']}`;
-            document.querySelector('button[onclick="addLiveVideo(\'UC1vy_AzF3zGK-lde_b-EGGQ\', \'佰仟加持\')"]').innerHTML = `<i class="fas fa-star"></i> ${translations[currentLanguage]['addLiveVideo2']}`;
             document.querySelector('button[onclick="toggleMenu()"]').innerHTML = `<i class="fas fa-times"></i> ${translations[currentLanguage]['closeMenu']}`;
             document.querySelector('button[onclick="toggleLanguage()"]').innerHTML = `<i class="fas fa-globe"></i> ${translations[currentLanguage]['toggleLanguage']}`;
 
