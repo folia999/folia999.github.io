@@ -353,13 +353,15 @@
         <div class="controls">
             <input type="number" id="videoCount" placeholder="數量" min="1" max="999">
             <input type="text" id="videoUrl" placeholder="YouTube影片網址">
-            <button onclick="generateVideos()"><i class="fas fa-video"></i>生成影片</button>
-            <button onclick="playAll()"><i class="fas fa-play"></i>播放全部</button>
-            <button onclick="pauseAll()"><i class="fas fa-pause"></i>暫停全部</button>
-            <button onclick="clearAll()"><i class="fas fa-stop"></i>清除全部</button>
-            <button onclick="saveCurrentLayout()"><i class="fas fa-save"></i>儲存設定</button>
+            <button onclick="generateVideos()"><i class="fas fa-video"></i>生成</button>
+            <button onclick="playAll()"><i class="fas fa-play"></i>播放</button>
+            <button onclick="pauseAll()"><i class="fas fa-pause"></i>暫停</button>
+            <button onclick="clearAll()"><i class="fas fa-stop"></i>清除</button>
+            <button onclick="saveCurrentLayout()"><i class="fas fa-save"></i>儲存</button>
             <button class="smtv-button" onclick="addSMTVVideo()"><i class="fas fa-sun"></i>SMTV</button>
             <button class="smtv-button" onclick="addLiveVideo('UCyYoY9S20IXXPLPrQWE5RfA', '萬兆加持')"><i class="fas fa-moon"></i>萬兆加持</button>
+            <button class="smtv-button" onclick="addLiveVideo('UCi_7g473qXszwbXBd6Q8zvQ', '不思議加持')"><i class="fas fa-infinity"></i>不思議加持</button>
+            <button class="smtv-button" onclick="addVideo('8GFbPTKiReM')"><i class="fas fa-star"></i>祈禱</button>
             <button class="close-menu" onclick="toggleMenu()"><i class="fas fa-times"></i>關閉選單</button>
             <button class="smtv-button" onclick="toggleLanguage()"><i class="fas fa-globe"></i>En</button>
         </div>
@@ -691,13 +693,15 @@
 
         const translations = {
             'zh': {
-                'generateVideos': '生成影片',
-                'playAll': '播放全部',
-                'pauseAll': '暫停全部',
-                'clearAll': '清除全部',
-                'saveCurrentLayout': '儲存設定',
+                'generateVideos': '生成',
+                'playAll': '播放',
+                'pauseAll': '暫停',
+                'clearAll': '清除',
+                'saveCurrentLayout': '儲存',
                 'addSMTVVideo': 'SMTV',
                 'addLiveVideo1': '萬兆加持',
+                'addLiveVideo2': '不思議加持',
+                'addLiveVideo3': '祈禱',
                 'closeMenu': '關閉選單',
                 'toggleLanguage': 'En',
                 'videoCountPlaceholder': '數量',
@@ -712,6 +716,8 @@
                 'saveCurrentLayout': 'Save',
                 'addSMTVVideo': 'SMTV',
                 'addLiveVideo1': '40Q Blessings',
+                'addLiveVideo2': 'Blessings',
+                'addLiveVideo3': 'Prayer',
                 'closeMenu': 'Close Menu',
                 'toggleLanguage': '中',
                 'videoCountPlaceholder': 'NUM',
@@ -742,40 +748,8 @@
             document.querySelector('button[onclick="saveCurrentLayout()"]').innerHTML = `<i class="fas fa-save"></i> ${translations[currentLanguage]['saveCurrentLayout']}`;
             document.querySelector('button[onclick="addSMTVVideo()"]').innerHTML = `<i class="fas fa-sun"></i> ${translations[currentLanguage]['addSMTVVideo']}`;
             document.querySelector('button[onclick="addLiveVideo(\'UCyYoY9S20IXXPLPrQWE5RfA\', \'萬兆加持\')"]').innerHTML = `<i class="fas fa-moon"></i> ${translations[currentLanguage]['addLiveVideo1']}`;
-            document.querySelector('button[onclick="toggleMenu()"]').innerHTML = `<i class="fas fa-times"></i> ${translations[currentLanguage]['closeMenu']}`;
-            document.querySelector('button[onclick="toggleLanguage()"]').innerHTML = `<i class="fas fa-globe"></i> ${translations[currentLanguage]['toggleLanguage']}`;
-
-            // 更新輸入框的佔位符
-            document.getElementById('videoCount').placeholder = translations[currentLanguage]['videoCountPlaceholder'];
-            document.getElementById('videoUrl').placeholder = translations[currentLanguage]['videoUrlPlaceholder'];
-        }
-
-        // 新增通知函數
-        function showNotification(message) {
-            // 移除舊的通知（如果存在）
-            const existingNotification = document.querySelector('.notification');
-            if (existingNotification) {
-                existingNotification.remove();
-            }
-
-            // 創建新的通知元素
-            const notification = document.createElement('div');
-            notification.className = 'notification';
-            notification.textContent = message;
-            document.body.appendChild(notification);
-
-            // 觸發動畫
-            requestAnimationFrame(() => {
-                notification.classList.add('show');
-            });
-
-            // 3秒後移除通知
-            setTimeout(() => {
-                notification.classList.remove('show');
-                setTimeout(() => {
-                    notification.remove();
-                }, 300); // 等待淡出動畫完成
-            }, 3000);
+            document.querySelector('button[onclick="addLiveVideo(\'UCi_7g473qXszwbXBd6Q8zvQ\', \'不思議加持\')"]').innerHTML = `<i class="fas fa-infinity"></i> ${translations[currentLanguage]['addLiveVideo2']}`;
+            document.querySelector('button[onclick="addVideo(\'8GFbPTKiReM\')"]').innerHTML = `<i class="fas fa-star"></i> ${translations[currentLanguage]['addLiveVideo3']}`;
         }
     </script>
 </body>
